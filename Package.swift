@@ -4,14 +4,14 @@
 import PackageDescription
 
 let package = Package(
-  name: "Clibgit2",
+  name: "libgit2",
   platforms: [.macOS(.v12)],
   products: [
     // Products define the executables and libraries a package produces, and make them visible to other packages.
     .library(
-      name: "Clibgit2",
-      // type: .dynamic,
-      targets: ["Clibgit2"]
+      name: "libgit2",
+      type: .dynamic,
+      targets: ["libgit2"]
     ),
   ],
   dependencies: [
@@ -21,7 +21,7 @@ let package = Package(
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
     // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
-      name: "Clibgit2",
+      name: "libgit2",
       dependencies: [],
       path: ".",
       exclude: [
@@ -60,10 +60,12 @@ let package = Package(
           "-DSHA1DC_CUSTOM_INCLUDE_SHA1_C=\"common.h\"",
           "-DSHA1DC_CUSTOM_INCLUDE_UBC_CHECK_C=\"common.h\"",
           "-DSHA1DC_NO_STANDARD_INCLUDES=1",
-          "-D_GNU_SOURCE",
           "-D_FILE_OFFSET_BITS=64",
-          "-std=gnu90",
         ]),
+      ],
+      linkerSettings: [
+        .linkedLibrary("iconv"),
+        .linkedLibrary("boringssl"),
       ]
     ),
   ]
