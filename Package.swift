@@ -22,51 +22,157 @@ let package = Package(
     // Targets can depend on other targets in this package, and on products in packages this package depends on.
     .target(
       name: "libgit2",
-      dependencies: [],
+      dependencies: [
+        "http-parser",
+//        "ntlmclient",
+      ],
       path: ".",
       exclude: [
-        "tests",
-        "fuzzers",
+        // ./
         "ci",
-        "docs",
-        "examples",
         "cmake",
         "deps",
+        "docs",
+        "examples",
+        "fuzzers",
         "script",
+        "tests",
+        "api.docurium",
+        "AUTHORS",
+        "CMakeLists.txt",
+        "COPYING",
+        "git.git-authors",
+        "package.json",
+        "README.md",
+        "SECURITY.md",
 
-        "COPYING", "AUTHORS", "README.md", "SECURITY.md",
-        "CMakeLists.txt", "package.json", "git.git-authors", "api.docurium",
-
+        // ./src/
         "src/CMakeLists.txt",
-        "src/win32",
-        "src/hash",
         "src/features.h.in",
-        "src/xdiff",
 
-        "src/unix",
-        "src/allocators",
-        "src/streams",
-        "src/transports",
+        // ./src/hash/sha1
+        "src/hash/sha1/common_crypto.h",
+        "src/hash/sha1/common_crypto.c",
+        "src/hash/sha1/generic.h",
+        "src/hash/sha1/generic.c",
+        "src/hash/sha1/mbedtls.h",
+        "src/hash/sha1/mbedtls.c",
+        "src/hash/sha1/openssl.h",
+        "src/hash/sha1/openssl.c",
+        "src/hash/sha1/win32.h",
+        "src/hash/sha1/win32.c",
+        // ./src/hash/
+        "src/hash/sha1.h",
+
+        // ./src/win32
+        "src/win32",
+
+        // ./include/git2/
+        "include/git2/stdint.h",
       ],
       sources: ["src"],
       publicHeadersPath: "include",
       cSettings: [
+        .headerSearchPath("include/git2/sys/features.h"),
         .headerSearchPath("src"),
         .headerSearchPath("include"),
         .headerSearchPath("deps/http-parser"),
         .headerSearchPath("deps/ntlmclient"),
 
+          .define("HAVE_QSORT_R_BSD"),
+        .define("_FILE_OFFSET_BITS", to: "64"),
+        .define("SHA1DC_NO_STANDARD_INCLUDES", to: "1"),
+        .define("SHA1DC_CUSTOM_INCLUDE_SHA1_C", to: "\"common.h\""),
+        .define("SHA1DC_CUSTOM_INCLUDE_UBC_CHECK_C", to: "\"common.h\""),
+
+          .define("USE_HEADERMAP", to: "NO"),
+        .define("GCC_INLINES_ARE_PRIVATE_EXTERN", to: "NO"),
+        .define("GCC_SYMBOLS_PRIVATE_EXTERN", to: "NO"),
         .unsafeFlags([
-          "-DSHA1DC_CUSTOM_INCLUDE_SHA1_C=\"common.h\"",
-          "-DSHA1DC_CUSTOM_INCLUDE_UBC_CHECK_C=\"common.h\"",
-          "-DSHA1DC_NO_STANDARD_INCLUDES=1",
-          "-D_FILE_OFFSET_BITS=64",
-        ]),
+          "-D_GNU_SOURCE",
+          "-Werror",
+          "-Wno-error",
+          "-Wall",
+          "-Wextra",
+          "-fvisibility=hidden",
+          "-fPIC",
+          "-Wdocumentation",
+          "-Wno-documentation-deprecated-sync",
+          "-Wno-missing-field-initializers",
+          "-Wstrict-aliasing",
+          "-Wstrict-prototypes",
+          "-Wdeclaration-after-statement",
+          "-Wshift-count-overflow",
+          "-Wunused-const-variable",
+          "-Wunused-function",
+          "-Wint-conversion",
+          "-Wformat",
+          "-Wformat-security",
+          "-Wmissing-declarations",
+          "-D_DEBUG",
+          "-std=gnu90",
+
+          /// NOTE:
+          /// Only one necessary flag.
+          /// Disable -fmodules flag.
+          /// Clang finds (struct entry) in different file ( search.h ).
+          "-fno-modules",
+        ])
       ],
+      cxxSettings: nil,
+      swiftSettings: nil,
       linkerSettings: [
+        .linkedFramework("CoreFoundation"),
+        .linkedFramework("Security"),
+        .linkedLibrary("z"),
         .linkedLibrary("iconv"),
-        .linkedLibrary("boringssl"),
       ]
     ),
+
+    .target(
+      name: "http-parser",
+      dependencies: [],
+      path: "deps/http-parser",
+      exclude: [
+        "CMakeLists.txt",
+        "COPYING"
+      ],
+      sources: nil,
+      resources: nil,
+      publicHeadersPath: ".",
+      cSettings: [],
+      cxxSettings: nil,
+      swiftSettings: nil,
+      linkerSettings: []
+    ),
+
+//    .target(
+//      name: "ntlmclient",
+//      dependencies: [],
+//      path: "deps/ntlmclient",
+//      exclude: [
+//        "crypt_openssl.h",
+//        "crypt_openssl.c",
+//        "crypt_mbedtls.h",
+//        "crypt_mbedtls.c",
+//        "unicode_builtin.c",
+//        "CMakeLists.txt",
+//      ],
+//      sources: [
+//        "ntlm.c",
+//        "unicode_iconv.c",
+//        "util.c",
+//        "crypt_commoncrypto.c"
+//      ],
+//      resources: nil,
+//      publicHeadersPath: ".",
+//      cSettings: [
+//        .define("NTLM_STATIC", to: "1"),
+//        .define("CRYPT_COMMONCRYPTO")
+//      ],
+//      cxxSettings: nil,
+//      swiftSettings: nil,
+//      linkerSettings: []
+//    ),
   ]
 )

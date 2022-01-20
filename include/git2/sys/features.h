@@ -28,10 +28,11 @@
 #undef GIT_QSORT_R_GNU
 #undef GIT_QSORT_S
 
-#define GIT_SSH 1
+// #define GIT_SSH 1
+#undef GIT_SSH
 #undef GIT_SSH_MEMORY_CREDENTIALS
 
-#define GIT_NTLM 1
+#undef GIT_NTLM
 #undef GIT_GSSAPI
 #undef GIT_GSSFRAMEWORK
 
