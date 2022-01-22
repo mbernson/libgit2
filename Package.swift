@@ -23,7 +23,6 @@ let package = Package(
       name: "libgit2",
       dependencies: [
         "http-parser",
-//        "ntlmclient",
       ],
       path: ".",
       exclude: [
@@ -89,29 +88,6 @@ let package = Package(
         .define("GCC_SYMBOLS_PRIVATE_EXTERN", to: "NO"),
 
         .unsafeFlags([
-          "-D_GNU_SOURCE",
-          "-Werror",
-          "-Wno-error",
-          "-Wall",
-          "-Wextra",
-          "-fvisibility=hidden",
-          "-fPIC",
-          "-Wdocumentation",
-          "-Wno-documentation-deprecated-sync",
-          "-Wno-missing-field-initializers",
-          "-Wstrict-aliasing",
-          "-Wstrict-prototypes",
-          "-Wdeclaration-after-statement",
-          "-Wshift-count-overflow",
-          "-Wunused-const-variable",
-          "-Wunused-function",
-          "-Wint-conversion",
-          "-Wformat",
-          "-Wformat-security",
-          "-Wmissing-declarations",
-          "-D_DEBUG",
-          "-std=gnu90",
-
           /// NOTE:
           /// Only one necessary flag.
           /// Disable -fmodules flag.
@@ -145,34 +121,5 @@ let package = Package(
       swiftSettings: nil,
       linkerSettings: []
     ),
-
-//    .target(
-//      name: "ntlmclient",
-//      dependencies: [],
-//      path: "deps/ntlmclient",
-//      exclude: [
-//        "crypt_openssl.h",
-//        "crypt_openssl.c",
-//        "crypt_mbedtls.h",
-//        "crypt_mbedtls.c",
-//        "unicode_builtin.c",
-//        "CMakeLists.txt",
-//      ],
-//      sources: [
-//        "ntlm.c",
-//        "unicode_iconv.c",
-//        "util.c",
-//        "crypt_commoncrypto.c"
-//      ],
-//      resources: nil,
-//      publicHeadersPath: ".",
-//      cSettings: [
-//        .define("NTLM_STATIC", to: "1"),
-//        .define("CRYPT_COMMONCRYPTO")
-//      ],
-//      cxxSettings: nil,
-//      swiftSettings: nil,
-//      linkerSettings: []
-//    ),
   ]
 )
