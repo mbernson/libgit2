@@ -205,6 +205,18 @@ int git_smart__detect_caps(git_pkt_ref *pkt, transport_smart_caps *caps, git_vec
 			continue;
 		}
 
+		if (!git__prefixcmp(ptr, GIT_CAP_WANT_TIP_SHA1)) {
+			caps->common = caps->want_tip_sha1 = 1;
+			ptr += strlen(GIT_CAP_DELETE_REFS);
+			continue;
+		}
+
+		if (!git__prefixcmp(ptr, GIT_CAP_WANT_REACHABLE_SHA1)) {
+			caps->common = caps->want_reachable_sha1 = 1;
+			ptr += strlen(GIT_CAP_DELETE_REFS);
+			continue;
+		}
+
 		/* We don't know this capability, so skip it */
 		ptr = strchr(ptr, ' ');
 	}
@@ -521,7 +533,6 @@ int git_smart__download_pack(
 	int error = 0;
 	struct network_packetsize_payload npp = {0};
 
-	// TODO
 	git_indexer_progress_cb progress_cb = t->connect_opts.callbacks.transfer_progress;
 	void *progress_payload = t->connect_opts.callbacks.payload;
 
@@ -1036,6 +1047,10 @@ int git_smart__push(git_transport *transport, git_push *push)
 			break;
 		}
 	}
+
+	/* prepare pack before sending pack header to avoid timeouts */
+	if (need_pack && ((error = git_packbuilder__prepare(push->pb))) < 0)
+		goto done;
 
 	if ((error = git_smart__get_push_stream(t, &packbuilder_payload.stream)) < 0 ||
 		(error = gen_pktline(&pktline, push)) < 0 ||
