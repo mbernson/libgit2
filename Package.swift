@@ -64,7 +64,7 @@ let package = Package(
 
                 .define("LIBGIT2_NO_FEATURES_H"),
 
-                .define("GIT_THREADS", to: "0"),
+                // .define("GIT_THREADS", to: "0"),
 
                 .define("GIT_ARCH_64", to: "1"),
 
