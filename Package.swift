@@ -19,6 +19,10 @@ let package = Package(
                 "src/util/hash/win32.h",
                 "src/util/hash/openssl.c",
                 "src/util/hash/openssl.h",
+                "src/util/hash/builtin.c",
+                "src/util/hash/builtin.h",
+                "src/util/hash/collisiondetect.c",
+                "src/util/hash/collisiondetect.h",
                 "deps/http-parser/CMakeLists.txt",
                 "deps/http-parser/COPYING",
                 "deps/xdiff/CMakeLists.txt",
@@ -29,6 +33,7 @@ let package = Package(
                 "src/libgit2",
                 "src/util",
                 "deps/http-parser",
+                "deps/prcre",
                 "deps/xdiff",
                 "deps/zlib",
             ],
@@ -42,6 +47,7 @@ let package = Package(
                 .headerSearchPath("src/libgit2"),
                 .headerSearchPath("src/util"),
                 .headerSearchPath("deps/http-parser"),
+                .headerSearchPath("deps/pcre"),
                 .headerSearchPath("deps/xdiff"),
                 .headerSearchPath("deps/zlib"),
 
@@ -51,7 +57,7 @@ let package = Package(
 
                 .define("GIT_ARCH_64", to: "1"),
 
-                .define("GIT_REGEX_REGCOMP_L"),
+                .define("GIT_REGEX_BUILTIN", to: "1"),
 
                 .define("GIT_QSORT_BSD"),
 
@@ -71,13 +77,13 @@ let package = Package(
                 // .define("GIT_MBEDTLS", to: "0"),
                 // .define("GIT_SCHANNEL", to: "0"),
 
-                // .define("GIT_SHA1_COLLISIONDETECT", to: "0"),
+//                .define("GIT_SHA1_COLLISIONDETECT", to: "1"),
                 .define("GIT_SHA1_COMMON_CRYPTO", to: "1"),
                 // .define("GIT_SHA1_OPENSSL", to: "0"),
                 // .define("GIT_SHA1_OPENSSL_DYNAMIC", to: "0"),
                 // .define("GIT_SHA1_MBEDTLS", to: "0"),
 
-                // .define("GIT_SHA256_BUILTIN", to: "0"),
+//                 .define("GIT_SHA256_BUILTIN", to: "0"),
                 // .define("GIT_SHA256_WIN32", to: "0"),
                 .define("GIT_SHA256_COMMON_CRYPTO", to: "1"),
                 // .define("GIT_SHA256_OPENSSL", to: "0"),
