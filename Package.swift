@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
@@ -14,14 +14,23 @@ let package = Package(
                 "src/libgit2/experimental.h.in",
                 "src/libgit2/git2.rc",
                 "src/libgit2/CMakeLists.txt",
+                "src/util/win32",
+                "src/util/hash/win32.c",
+                "src/util/hash/win32.h",
+                "src/util/hash/openssl.c",
+                "src/util/hash/openssl.h",
                 "deps/http-parser/CMakeLists.txt",
                 "deps/http-parser/COPYING",
                 "deps/xdiff/CMakeLists.txt",
+                "deps/zlib/CMakeLists.txt",
+                "deps/zlib/COPYING",
             ],
             sources: [
                 "src/libgit2",
+                "src/util",
                 "deps/http-parser",
                 "deps/xdiff",
+                "deps/zlib",
             ],
             publicHeadersPath: "include",
             cSettings: [
@@ -34,6 +43,7 @@ let package = Package(
                 .headerSearchPath("src/util"),
                 .headerSearchPath("deps/http-parser"),
                 .headerSearchPath("deps/xdiff"),
+                .headerSearchPath("deps/zlib"),
 
                 .define("LIBGIT2_NO_FEATURES_H"),
 
@@ -77,7 +87,7 @@ let package = Package(
                 // .define("GIT_RAND_GETENTROPY", to: "0"),
                 // .define("GIT_RAND_GETLOADAVG", to: "0"),
 
-                // .define("GIT_IO_POLL", to: "0"),
+                .define("GIT_IO_POLL", to: "1"),
                 // .define("GIT_IO_WSAPOLL", to: "0"),
                 // .define("GIT_IO_SELECT", to: "0"),
             ]
