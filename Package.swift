@@ -63,14 +63,13 @@ let package = Package(
                 .headerSearchPath("src/util"),
 
                 .define("LIBGIT2_NO_FEATURES_H"),
-
-                // .define("GIT_THREADS", to: "0"),
-
                 .define("GIT_ARCH_64", to: "1"),
+                .define("GIT_QSORT_BSD", to: "1"),
+                .define("GIT_IO_POLL", to: "1"),
 
+                // Git regex configuration
                 .define("GIT_REGEX_BUILTIN", to: "1"),
                 .define("PCRE_LINK_SIZE", to: "2"),
-
                 .define("SUPPORT_PCRE8", to: "1"),
                 .define("LINK_SIZE", to: "2"),
                 .define("PARENS_NEST_LIMIT", to: "250"),
@@ -83,33 +82,17 @@ let package = Package(
                 .define("MAX_NAME_SIZE", to: "32"),
                 .define("MAX_NAME_COUNT", to: "10000"),
 
-                .define("GIT_QSORT_BSD"),
+                // Git SSH transport configuration
+                .define("GIT_SSH", to: "1"),
+                .define("GIT_SSH_EXEC", to: "1"),
 
-                 .define("GIT_SSH", to: "1"),
-                // .define("GIT_SSH_EXEC", to: "0"),
-                // .define("GIT_SSH_LIBSSH2", to: "0"),
-                // .define("GIT_SSH_LIBSSH2_MEMORY_CREDENTIALS", to: "0"),
+                // Git HTTPS transport configuration
+                .define("GIT_HTTPS", to: "1"),
+                .define("GIT_SECURE_TRANSPORT", to: "1"),
 
-                // .define("GIT_NTLM", to: "0"),
-                // .define("GIT_GSSAPI", to: "0"),
-                // .define("GIT_GSSFRAMEWORK", to: "0"),
-
-                 .define("GIT_HTTPS", to: "1"),
-                // .define("GIT_OPENSSL", to: "0"),
-                // .define("GIT_OPENSSL_DYNAMIC", to: "0"),
-                // .define("GIT_SECURE_TRANSPORT", to: "0"),
-                // .define("GIT_MBEDTLS", to: "0"),
-                // .define("GIT_SCHANNEL", to: "0"),
-
+                // Git cryptography configuration
                 .define("GIT_SHA1_COMMON_CRYPTO", to: "1"),
                 .define("GIT_SHA256_COMMON_CRYPTO", to: "1"),
-
-                // .define("GIT_RAND_GETENTROPY", to: "0"),
-                // .define("GIT_RAND_GETLOADAVG", to: "0"),
-
-                .define("GIT_IO_POLL", to: "1"),
-                // .define("GIT_IO_WSAPOLL", to: "0"),
-                // .define("GIT_IO_SELECT", to: "0"),
             ]
         ),
     ]
