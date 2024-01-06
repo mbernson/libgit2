@@ -20,7 +20,7 @@ let package = Package(
                 "deps/pcre/config.h.in",
                 "deps/xdiff/CMakeLists.txt",
                 "deps/zlib/CMakeLists.txt",
-                "deps/zlib/COPYING",
+                "deps/zlib/LICENSE",
                 "src/libgit2/CMakeLists.txt",
                 "src/libgit2/experimental.h.in",
                 "src/libgit2/git2.rc",
