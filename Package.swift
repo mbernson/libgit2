@@ -47,7 +47,7 @@ let package = Package(
             publicHeadersPath: "include",
             cSettings: [
                 .unsafeFlags([
-                  // Disable -fmodules flag. Clang finds (struct entry) in different file (`search.h`).
+                  // Disable -fmodules flag. Clang finds (`struct entry`) in a different file (`search.h`).
                   "-fno-modules",
                   // Disable warning: "implicit conversion loses integer precision"
                   "-Wno-single-bit-bitfield-constant-conversion",
