@@ -11,21 +11,17 @@ on:
 
 env:
   docker-registry: ghcr.io
-  docker-config-path: source/ci/docker
+  docker-config-path: ci/docker
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  containers:
-    uses: ./.github/workflows/build-containers.yml
-
   # Run our CI/CD builds.  We build a matrix with the various build targets
   # and their details.  Then we build either in a docker container (Linux)
   # or on the actual hosts (macOS, Windows).
   build:
-    needs: [ containers ]
     strategy:
       matrix:
         platform:
@@ -69,6 +65,7 @@ jobs:
         - name: "macOS"
           id: macos
           os: macos-12
+          setup-script: osx
           env:
             CC: clang
             CMAKE_OPTIONS: -DREGEX_BACKEND=regcomp_l -DDEPRECATE_HARD=ON -DUSE_LEAK_CHECKER=leaks -DUSE_GSSAPI=ON
@@ -76,7 +73,6 @@ jobs:
             PKG_CONFIG_PATH: /usr/local/opt/openssl/lib/pkgconfig
             SKIP_SSH_TESTS: true
             SKIP_NEGOTIATE_TESTS: true
-          setup-script: osx
         - name: "Windows (amd64, Visual Studio, Schannel)"
           id: windows-amd64-vs
           os: windows-2019
@@ -129,6 +125,8 @@ jobs:
         # All builds: sanitizers
         - name: "Sanitizer (Memory)"
           id: sanitizer-memory
+          os: ubuntu-latest
+          setup-script: sanitizer
           container:
             name: noble
           env:
@@ -140,10 +138,25 @@ jobs:
             SKIP_NEGOTIATE_TESTS: true
             ASAN_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer-10
             UBSAN_OPTIONS: print_stacktrace=1
+        - name: "Sanitizer (Address)"
+          id: sanitizer-address
           os: ubuntu-latest
+          setup-script: sanitizer
+          container:
+            name: noble
+          env:
+            CC: clang
+            CFLAGS: -fsanitize=address -ggdb -fsanitize-blacklist=/home/libgit2/source/script/sanitizers.supp -fno-optimize-sibling-calls -fno-omit-frame-pointer
+            CMAKE_OPTIONS: -DCMAKE_PREFIX_PATH=/usr/local -DUSE_HTTPS=mbedTLS -DUSE_SHA1=HTTPS -DREGEX_BACKEND=pcre -DDEPRECATE_HARD=ON -DUSE_BUNDLED_ZLIB=ON -DUSE_SSH=ON
+            CMAKE_GENERATOR: Ninja
+            SKIP_SSH_TESTS: true
+            SKIP_NEGOTIATE_TESTS: true
+            ASAN_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer-10
+            UBSAN_OPTIONS: print_stacktrace=1
         - name: "Sanitizer (UndefinedBehavior)"
           id: sanitizer-ub
           os: ubuntu-latest
+          setup-script: sanitizer
           container:
             name: noble
           env:
@@ -158,6 +171,7 @@ jobs:
         - name: "Sanitizer (Thread)"
           id: sanitizer-thread
           os: ubuntu-latest
+          setup-script: sanitizer
           container:
             name: noble
           env:
@@ -170,44 +184,13 @@ jobs:
             ASAN_SYMBOLIZER_PATH: /usr/bin/llvm-symbolizer-10
             UBSAN_OPTIONS: print_stacktrace=1
             TSAN_OPTIONS: suppressions=/home/libgit2/source/script/thread-sanitizer.supp second_deadlock_stack=1
-
-        # All builds: experimental SHA256 support
-        - name: "Linux (SHA256, Xenial, Clang, OpenSSL)"
-          id: xenial-clang-openssl
-          os: ubuntu-latest
-          container:
-            name: xenial
-          env:
-            CC: clang
-            CMAKE_GENERATOR: Ninja
-            CMAKE_OPTIONS: -DUSE_HTTPS=OpenSSL -DDEPRECATE_HARD=ON -DUSE_LEAK_CHECKER=valgrind -DUSE_GSSAPI=ON -DUSE_SSH=ON -DEXPERIMENTAL_SHA256=ON
-        - name: "macOS (SHA256)"
-          id: macos
-          os: macos-12
-          setup-script: osx
-          env:
-            CC: clang
-            CMAKE_OPTIONS: -DREGEX_BACKEND=regcomp_l -DDEPRECATE_HARD=ON -DUSE_LEAK_CHECKER=leaks -DUSE_GSSAPI=ON -DEXPERIMENTAL_SHA256=ON
-            CMAKE_GENERATOR: Ninja
-            PKG_CONFIG_PATH: /usr/local/opt/openssl/lib/pkgconfig
-            SKIP_SSH_TESTS: true
-            SKIP_NEGOTIATE_TESTS: true
-        - name: "Windows (SHA256, amd64, Visual Studio)"
-          id: windows-amd64-vs
-          os: windows-2019
-          env:
-            ARCH: amd64
-            CMAKE_GENERATOR: Visual Studio 16 2019
-            CMAKE_OPTIONS: -A x64 -DWIN32_LEAKCHECK=ON -DDEPRECATE_HARD=ON -DEXPERIMENTAL_SHA256=ON
-            SKIP_SSH_TESTS: true
-            SKIP_NEGOTIATE_TESTS: true
       fail-fast: false
     env: ${{ matrix.platform.env }}
     runs-on: ${{ matrix.platform.os }}
     name: "Build: ${{ matrix.platform.name }}"
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: source
         fetch-depth: 0
@@ -218,22 +201,15 @@ jobs:
     - name: Setup QEMU
       run: docker run --rm --privileged multiarch/qemu-user-static:register --reset
       if: matrix.platform.container.qemu == true
-    - name: Download container
-      run: |
-        "${{ github.workspace }}/source/ci/getcontainer.sh" "${{ matrix.platform.container.name }}" "${{ matrix.platform.container.dockerfile }}"
-      env:
-        DOCKER_REGISTRY: ${{ env.docker-registry }}
-        GITHUB_TOKEN: ${{ secrets.github_token }}
-      working-directory: ${{ env.docker-config-path }}
+    - name: Set up container
+      uses: ./source/.github/actions/download-or-build-container
+      with:
+        registry: ${{ env.docker-registry }}
+        config-path: ${{ env.docker-config-path }}
+        container: ${{ matrix.platform.container.name }}
+        github_token: ${{ secrets.github_token }}
+        dockerfile: ${{ matrix.platform.container.dockerfile }}
       if: matrix.platform.container.name != ''
-    - name: Create container
-      run: |
-        if [ "${{ matrix.container.base }}" != "" ]; then
-          BASE_ARG="--build-arg BASE=${{ matrix.container.base }}"
-        fi
-        docker build -t ${{ env.docker-registry-container-sha }} --build-arg UID=$(id -u) --build-arg GID=$(id -g) ${BASE_ARG} -f ${{ env.dockerfile }} .
-      working-directory: ${{ env.docker-config-path }}
-      if: matrix.platform.container.name != '' && env.docker-container-exists != 'true'
     - name: Prepare build
       run: mkdir build
     - name: Build
@@ -251,7 +227,7 @@ jobs:
         container-version: ${{ env.docker-registry-container-sha }}
         shell: ${{ matrix.platform.shell }}
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-${{ matrix.platform.id }}
@@ -278,15 +254,22 @@ jobs:
   # published to our documentation site.
   documentation:
     name: Generate documentation
-    needs: [ containers ]
     if: success() || failure()
     runs-on: ubuntu-latest
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: source
         fetch-depth: 0
+    - name: Set up container
+      uses: ./source/.github/actions/download-or-build-container
+      with:
+        registry: ${{ env.docker-registry }}
+        config-path: ${{ env.docker-config-path }}
+        container: docurium
+        github_token: ${{ secrets.github_token }}
+        dockerfile: ${{ matrix.platform.container.dockerfile }}
     - name: Generate documentation
       working-directory: source
       run: |
@@ -302,7 +285,7 @@ jobs:
             cm doc api.docurium
         git checkout gh-pages
         zip --exclude .git/\* --exclude .gitignore --exclude .gitattributes -r api-documentation.zip .
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       name: Upload artifact
       with:
         name: api-documentation

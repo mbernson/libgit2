@@ -744,10 +744,9 @@ typedef struct {
 	git_fetch_prune_t prune;
 
 	/**
-	 * How to handle reference updates; a combination of
-	 * `git_remote_update_flags`.
+	 * How to handle reference updates; see `git_remote_update_flags`.
 	 */
-	unsigned int update_flags;
+	unsigned int update_fetchhead;
 
 	/**
 	 * Determines how to behave regarding tags on the remote, such
@@ -846,6 +845,11 @@ typedef struct {
 	 * Extra headers for this push operation
 	 */
 	git_strarray custom_headers;
+
+	/**
+	 * "Push options" to deliver to the remote.
+	 */
+	git_strarray remote_push_options;
 } git_push_options;
 
 #define GIT_PUSH_OPTIONS_VERSION 1

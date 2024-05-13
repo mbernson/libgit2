@@ -18,6 +18,11 @@ if [[ "$(uname -s)" == MINGW* ]]; then
         SKIP_NTLM_TESTS=1
 fi
 
+# older versions of git don't support push options
+if [ -z "$SKIP_PUSHOPTIONS_TESTS" ]; then
+	export GITTEST_PUSH_OPTIONS=true
+fi
+
 SOURCE_DIR=${SOURCE_DIR:-$( cd "$( dirname "${BASH_SOURCE[0]}" )" && dirname $( pwd ) )}
 BUILD_DIR=$(pwd)
 BUILD_PATH=${BUILD_PATH:=$PATH}
@@ -162,8 +167,9 @@ echo ""
 if should_run "GITDAEMON_TESTS"; then
 	echo "Starting git daemon (standard)..."
 	GIT_STANDARD_DIR=`mktemp -d ${TMPDIR}/git_standard.XXXXXXXX`
-	git init --bare "${GIT_STANDARD_DIR}/test.git" >/dev/null
+	cp -R "${SOURCE_DIR}/tests/resources/pushoptions.git" "${GIT_STANDARD_DIR}/test.git"
 	git daemon --listen=localhost --export-all --enable=receive-pack --base-path="${GIT_STANDARD_DIR}" "${GIT_STANDARD_DIR}" 2>/dev/null &
+
 	GIT_STANDARD_PID=$!
 
 	echo "Starting git daemon (namespace)..."
@@ -196,7 +202,8 @@ if should_run "NTLM_TESTS" || should_run "ONLINE_TESTS"; then
 
 	echo "Starting HTTP server..."
 	HTTP_DIR=`mktemp -d ${TMPDIR}/http.XXXXXXXX`
-	git init --bare "${HTTP_DIR}/test.git"
+	cp -R "${SOURCE_DIR}/tests/resources/pushoptions.git" "${HTTP_DIR}/test.git"
+
 	java -jar poxygit.jar --address 127.0.0.1 --port 9000 --credentials foo:baz --quiet "${HTTP_DIR}" &
 	HTTP_PID=$!
 fi
@@ -204,7 +211,8 @@ fi
 if should_run "SSH_TESTS"; then
 	echo "Starting SSH server..."
 	SSHD_DIR=`mktemp -d ${TMPDIR}/sshd.XXXXXXXX`
-	git init --bare "${SSHD_DIR}/test.git" >/dev/null
+	cp -R "${SOURCE_DIR}/tests/resources/pushoptions.git" "${SSHD_DIR}/test.git"
+
 	cat >"${SSHD_DIR}/sshd_config" <<-EOF
 	Port 2222
 	ListenAddress 0.0.0.0

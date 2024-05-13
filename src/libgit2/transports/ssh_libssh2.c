@@ -23,6 +23,8 @@
 
 #define OWNING_SUBTRANSPORT(s) ((ssh_subtransport *)(s)->parent.subtransport)
 
+extern int git_socket_stream__timeout;
+
 static const char cmd_uploadpack[] = "git-upload-pack";
 static const char cmd_receivepack[] = "git-receive-pack";
 
@@ -373,8 +375,8 @@ static int _git_ssh_authenticate_session(
 			return GIT_EAUTH;
 
 	if (rc != LIBSSH2_ERROR_NONE) {
-		if (!git_error_last())
-			ssh_error(session, "Failed to authenticate SSH session");
+		if (git_error_last()->klass == GIT_ERROR_NONE)
+			ssh_error(session, "failed to authenticate SSH session");
 		return -1;
 	}
 
@@ -537,6 +539,10 @@ static int _git_ssh_session_create(
 	if (!s) {
 		git_error_set(GIT_ERROR_NET, "failed to initialize SSH session");
 		return -1;
+	}
+
+	if (git_socket_stream__timeout > 0) {
+		libssh2_session_set_timeout(s, git_socket_stream__timeout);
 	}
 
 	if ((rc = load_known_hosts(&known_hosts, s)) < 0) {

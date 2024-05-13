@@ -303,6 +303,11 @@ static int local_negotiate_fetch(
 
 	GIT_UNUSED(wants);
 
+	if (wants->depth) {
+		git_error_set(GIT_ERROR_NET, "shallow fetch is not supported by the local transport");
+		return GIT_ENOTSUPPORTED;
+	}
+
 	/* Fill in the loids */
 	git_vector_foreach(&t->refs, i, rhead) {
 		git_object *obj;
@@ -453,7 +458,7 @@ static int local_push(
 			default:
 				last = git_error_last();
 
-				if (last && last->message)
+				if (last->klass != GIT_ERROR_NONE)
 					status->msg = git__strdup(last->message);
 				else
 					status->msg = git__strdup("Unspecified error encountered");
