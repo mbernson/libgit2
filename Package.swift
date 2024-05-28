@@ -11,8 +11,8 @@ let package = Package(
             name: "libgit2",
             path: ".",
             exclude: [
-                "deps/http-parser/CMakeLists.txt",
-                "deps/http-parser/COPYING",
+                "deps/llhttp/CMakeLists.txt",
+                "deps/llhttp/LICENSE-MIT",
                 "deps/pcre/CMakeLists.txt",
                 "deps/pcre/COPYING",
                 "deps/pcre/LICENCE",
@@ -37,7 +37,7 @@ let package = Package(
                 "src/util/win32",
             ],
             sources: [
-                "deps/http-parser",
+                "deps/llhttp",
                 "deps/pcre",
                 "deps/xdiff",
                 "deps/zlib",
@@ -55,7 +55,7 @@ let package = Package(
                   "-Wno-deprecated-non-prototype",
                 ]),
 
-                .headerSearchPath("deps/http-parser"),
+                .headerSearchPath("deps/llhttp"),
                 .headerSearchPath("deps/pcre"),
                 .headerSearchPath("deps/xdiff"),
                 .headerSearchPath("deps/zlib"),
@@ -88,6 +88,7 @@ let package = Package(
 
                 // Git HTTPS transport configuration
                 .define("GIT_HTTPS", to: "1"),
+                .define("GIT_HTTPPARSER_BUILTIN", to: "1"),
                 .define("GIT_SECURE_TRANSPORT", to: "1"),
 
                 // Git cryptography configuration
